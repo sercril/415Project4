@@ -64,6 +64,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="LoadShaders.h" />
+    <ClInclude Include="SceneObject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LoadShaders.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SceneObject.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="animdata.bin" />
+    <None Include="animdata_10fps.bin" />
+    <None Include="Cube_Fragment_Shader.frag" />
+    <None Include="Cube_Vertex_Shader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="geometryfileexample.txt" />
+    <Text Include="SphereMesh.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
