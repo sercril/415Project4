@@ -46,6 +46,7 @@
     <None Include="animdata_10fps.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="geometryfileexample.txt">

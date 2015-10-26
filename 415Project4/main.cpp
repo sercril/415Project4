@@ -67,22 +67,23 @@ struct Keyframe
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 1024
-//#define WORLD_OBJECTS 3
 #define NUM_OBJECTS 18
 #define INDECIES 10000
 
-// Parameter location for passing a matrix to vertex shader
-GLuint Matrix_loc;
-// Parameter locations for passing data to shaders
-GLuint vertposition_loc, vertcolor_loc;
-
-GLenum errCode;
-const GLubyte *errString;
-
 int mouseX, mouseY,
 mouseDeltaX, mouseDeltaY;
-
+bool restart;
 float azimuth, elevation, startTime, hand[16][3], ballRadius, floorY, attachments[4], thumbLoc[3], viewScaleFactor;
+
+struct Keyframe c;
+
+GLuint Matrix_loc, vertposition_loc, vertcolor_loc;
+
+GLenum errCode;
+
+const GLubyte *errString;
+
+FILE *animFP;
 
 gmtl::Matrix44f view, modelView, ballTransform, floorTransform, palmTransform, viewScale, camera, ballScale,
 				palmRotM, ballRotM,
@@ -90,22 +91,14 @@ gmtl::Matrix44f view, modelView, ballTransform, floorTransform, palmTransform, v
 gmtl::Quatf palmRotQ, ballRotQ;
 
 std::vector<SceneNode*> sceneGraph;
-
 std::vector<GLfloat> ball_vertex_data;
 std::vector<GLushort> ball_index_data;
-
 std::vector<gmtl::Matrix44f> fingerTransforms[15];
-
-FILE *animFP;
-
-struct Keyframe c;
-
 std::vector<Keyframe> keyframes;
 
-bool restart;
 #pragma endregion
 
-#pragma region Helper Functions
+#pragma region Camera
 
 float arcToDegrees(float arcLength)
 {
@@ -119,7 +112,7 @@ float degreesToRadians(float deg)
 
 void cameraRotate()
 {
-	
+
 	elevationRotation.set(
 		1, 0, 0, 0,
 		0, cos(elevation * -1), (sin(elevation * -1) * -1), 0,
@@ -138,13 +131,17 @@ void cameraRotate()
 
 	gmtl::transpose(elevationRotation);
 	gmtl::transpose(azimuthRotation);
-	
+
 	view = viewScale * elevationRotation * azimuthRotation;
 
 	view.setState(gmtl::Matrix44f::FULL);
 
 	glutPostRedisplay();
 }
+
+#pragma endregion
+
+#pragma region Helper Functions
 
 void readGeometry()
 {
@@ -395,18 +392,6 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glEnable(GL_PRIMITIVE_RESTART);
 			glPrimitiveRestartIndex(0xFFFF);
 			glDrawElements((graph[i]->type == BALL) ? GL_TRIANGLES : GL_TRIANGLE_STRIP, INDECIES, GL_UNSIGNED_SHORT, NULL);
-
-			/*switch (graph[i]->type)
-			{
-				case METACARPAL:
-				case PROXIMAL:
-				case MIDDLE:
-				case DISTAL:
-					gmtl::invertFull(inverseTransform, graph[i]->object.matrix * thisTransform);
-					modelView = modelView * inverseTransform;
-					break;
-			}*/
-
 			
 			if (!graph[i]->children.empty())
 			{
@@ -485,6 +470,8 @@ Keyframe interpolate(float currentTime, Keyframe currentFrame, Keyframe nextFram
 
 #pragma endregion
 
+#pragma region "Input"
+
 # pragma region "Mouse Input"
 
 void mouse(int button, int state, int x, int y)
@@ -545,6 +532,10 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 #pragma endregion
+
+#pragma endregion
+
+#pragma region "GLUT Functions"
 
 void display()
 {
@@ -821,8 +812,6 @@ void idle()
 
 }
 
-
-
 void init()
 {
 
@@ -875,6 +864,8 @@ void init()
 	restart = false;
 	startTime = 0;
 }
+
+#pragma endregion
 
 int main(int argc, char** argv)
 {
