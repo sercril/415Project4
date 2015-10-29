@@ -13,6 +13,8 @@
 #include <gmtl\gmtl.h>
 #include <gmtl\Matrix.h>
 
+#include "VertexArrayObject.h"
+
 using namespace std;
 
 class SceneObject
@@ -27,13 +29,11 @@ public:
 
 	gmtl::Matrix44f matrix, scale;
 	float length, width, depth, radius;
-	GLuint vertex_array;
+	VertexArrayObject VAO;
 
 
 private:
 
-	GLuint vertex_buffer, color_buffer, index_buffer,
-		vertposition_loc, vertcolor_loc;
 };
 
-#endif
+#endif __SCENE_OBJECT_H__

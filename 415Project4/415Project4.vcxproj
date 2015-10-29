@@ -46,7 +46,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>G:\Documents\GitHub\415Project4\415Project4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\agm1564\Documents\GitHub\415Project4\415Project4;G:\Documents\GitHub\415Project4\415Project4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,22 +69,21 @@
   <ItemGroup>
     <ClInclude Include="LoadShaders.h" />
     <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="VertexArrayObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LoadShaders.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="VertexArrayObject.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="animdata.bin" />
-    <None Include="animdata_10fps.bin" />
     <None Include="Cube_Fragment_Shader.frag" />
     <None Include="Cube_Vertex_Shader.vert" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="geometryfileexample.txt" />
-    <Text Include="SphereMesh.txt" />
+    <Text Include="SpherePNT.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
