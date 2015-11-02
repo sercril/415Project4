@@ -16,7 +16,8 @@
 
 #include "LoadShaders.h"
 #include "SceneObject.h"
-#include "Vertex.h"
+
+#include "Texture.h"
 
 #pragma comment (lib, "glew32.lib")
 #pragma warning (disable : 4996) // Windows ; consider instead replacing fopen with fopen_s
@@ -70,6 +71,9 @@ struct Keyframe
 int mouseX, mouseY,
 mouseDeltaX, mouseDeltaY;
 
+unsigned int textureWidth, textureHeight;
+unsigned char *imageData;
+
 bool genNorms;
 
 float azimuth, elevation, ballRadius, floorY, cameraZFactor,
@@ -77,7 +81,7 @@ float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 
 struct Keyframe c;
 
-GLuint Matrix_loc, vertposition_loc, vertcolor_loc;
+GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location;
 
 GLenum errCode;
 
@@ -140,6 +144,11 @@ void cameraRotate()
 #pragma region Helper Functions
 
 
+void LoadTexture(char* filename)
+{
+	LoadPPM(filename, &textureWidth, &textureHeight, &imageData, 1);
+}
+
 void importBallData()
 {
 	ifstream fp;
@@ -196,23 +205,23 @@ void buildGraph()
 	importBallData();
 	ball->type = BALL;
 	ball->parent = NULL;
-	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertcolor_loc);
+	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV);
 	ball->children.clear();
+	LoadTexture("marbles2.ppm");
+	ball->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 	sceneGraph.push_back(ball);
 
 	//Floor
 	floor->type = FLOOR;
 	floor->parent = NULL;
-	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius*10, vertposition_loc, vertcolor_loc);
+	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius * 10, vertposition_loc, vertex_UV);
 	floor->children.clear();
 	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, floorY*-1.0f, 0.0f));
 	initialTranslation.setState(gmtl::Matrix44f::TRANS);
 	//Make it look good
-	moveLeft = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(((ballRadius* 10)*-1.0f)/2, 0.0f, 0.0f));
-	moveLeft.setState(gmtl::Matrix44f::TRANS);
-	initialTranslation = moveLeft * initialTranslation;
+	initialTranslation = initialTranslation;
 	floor->object.matrix = floor->object.matrix * initialTranslation;
-
+	floor->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 	sceneGraph.push_back(floor);
 }
 
@@ -236,6 +245,17 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 				graph[i]->object.VAO.GenerateNormals();
 			}
 
+			
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, graph[i]->object.texture.textureHeight, graph[i]->object.texture.textureWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, graph[i]->object.texture.imageData);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			
+
+			
+
 			//Render
 			renderTransform = projection * newMV;
 			
@@ -246,7 +266,7 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			// Draw the transformed cuboid
 			glEnable(GL_PRIMITIVE_RESTART);
 			glPrimitiveRestartIndex(0xFFFF);
-			glDrawElements((graph[i]->type == BALL) ? GL_TRIANGLES : GL_TRIANGLE_STRIP, INDECIES, GL_UNSIGNED_SHORT, NULL);
+			glDrawElements(GL_TRIANGLES, INDECIES, GL_UNSIGNED_SHORT, NULL);
 			
 			if (!graph[i]->children.empty())
 			{
@@ -281,8 +301,8 @@ void mouseMotion(int x, int y)
 	mouseDeltaY = y - mouseY;
 
 
-	elevation += degreesToRadians(arcToDegrees(mouseDeltaY)) / SCREEN_HEIGHT;
-	azimuth += degreesToRadians(arcToDegrees(mouseDeltaX)) / SCREEN_WIDTH;
+	elevation += degreesToRadians(arcToDegrees(mouseDeltaY)) / (SCREEN_HEIGHT/2);
+	azimuth += degreesToRadians(arcToDegrees(mouseDeltaX)) / (SCREEN_WIDTH /2 );
 
 	cameraRotate();
 
@@ -336,7 +356,6 @@ void keyboard(unsigned char key, int x, int y)
 
 void display()
 {
-	gmtl::Matrix44f tempModelView;
 
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -384,7 +403,17 @@ void init()
 	//Get the shader parameter locations for passing data to shaders
 	vertposition_loc = glGetAttribLocation(program, "vertexPosition");
 	vertcolor_loc = glGetAttribLocation(program, "vertexColor");
+	vertex_UV = glGetAttribLocation(program, "vertexUV");
 	Matrix_loc = glGetUniformLocation(program, "Matrix");
+	normal_loc = glGetAttribLocation(program, "normal");
+	
+	texture_location = glGetUniformLocation(program, "texture_Colors");
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindTexture(GL_TEXTURE_2D, texture_location);
+
+
 
 	gmtl::identity(view);
 	gmtl::identity(modelView);
@@ -415,14 +444,6 @@ void init()
 	cameraZ = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f,0.0f,cameraZFactor));
 	cameraZ.setState(gmtl::Matrix44f::TRANS);
 	
-	/*viewScaleFactor = 0.02f;
-	viewScale = gmtl::makeScale<gmtl::Matrix44f>(gmtl::Vec3f(viewScaleFactor, viewScaleFactor, viewScaleFactor));
-
-	viewScale.setState(gmtl::Matrix44f::AFFINE);
-	gmtl::invert(viewScale);
-
-	view = viewScale;*/
-
 	view = cameraZ;
 	gmtl::invert(view);
 

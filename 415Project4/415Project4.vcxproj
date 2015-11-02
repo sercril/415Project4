@@ -69,6 +69,7 @@
   <ItemGroup>
     <ClInclude Include="LoadShaders.h" />
     <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexArrayObject.h" />
   </ItemGroup>
@@ -76,12 +77,15 @@
     <ClCompile Include="LoadShaders.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="VertexArrayObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BasketballColor.ppm" />
     <None Include="Cube_Fragment_Shader.frag" />
     <None Include="Cube_Vertex_Shader.vert" />
+    <None Include="marbles2.ppm" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

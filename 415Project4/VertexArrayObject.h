@@ -13,6 +13,7 @@
 #include <gmtl\Matrix.h>
 
 #include "Vertex.h"
+#include "Texture.h"
 
 using namespace std;
 
@@ -20,8 +21,7 @@ class VertexArrayObject
 {
 	public:
 		VertexArrayObject();
-		VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertcolor_loc);
-		VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertcolor_loc);
+		VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertex_UV);
 		~VertexArrayObject();
 
 		void GenerateNormals();
@@ -32,7 +32,7 @@ class VertexArrayObject
 	private:
 		void LoadVerticies(std::vector<GLfloat> vertexData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData);
 
-		GLuint vertexBuffer, colorBuffer, indexBuffer;
+		GLuint vertexBuffer, colorBuffer, indexBuffer, uvBuffer, textureLocation;
 
 		std::vector<GLfloat> vertex_data;
 		std::vector<GLushort> index_data;

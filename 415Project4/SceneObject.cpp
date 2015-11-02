@@ -1378,7 +1378,7 @@ SceneObject::SceneObject()
 
 }
 
-SceneObject::SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertcolor_loc)
+SceneObject::SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV)
 {
 
 	float x1 = 0, x2, y1, y2, z1, z2;
@@ -1402,46 +1402,183 @@ SceneObject::SceneObject(float length, float width, float depth, GLuint vertposi
 	this->scale.setState(gmtl::Matrix44f::AFFINE);
 
 	#pragma region Data Vectors
-	std::vector<GLfloat> vbuffer_data =
+	//std::vector<GLfloat> vbuffer_data =
+	//{
+	//	x1, y1, z1, //0
+	//	x1, y2, z1, //1
+	//	x1, y1, z2, //2
+	//	x1, y2, z2, //3
+	//	x2, y1, z1, //4
+	//	x2, y2, z1, //5
+	//	x2, y1, z2, //6
+	//	x2, y2, z2 //7
+	//};
+
+	//std::vector<GLfloat> cbuffer_data =
+	//{
+	//	0.6f, 0.7f, 0.9f,
+	//	1.0f, 0.8f, 0.9f,
+	//	0.6f, 0.2f, 0.7f,
+	//	0.9f, 0.9f, 0.7f,
+	//	0.2f, 0.5f, 0.8f,
+	//	1.0f, 0.8f, 0.9f,
+	//	0.1f, 0.0f, 0.8f,
+	//	0.9f, 0.6f, 0.1f
+	//};
+
+	//std::vector<GLushort> index_buffer_data =
+	//{
+	//	0, 4, 1, 5, 3, 7, 2, 6, 0, 4,
+	//	0xFFFF,
+	//	1, 0, 3, 2,
+	//	0xFFFF,
+	//	5, 4, 7, 6,
+	//};
+
+	std::vector<GLfloat> vbuffer_data = 
 	{
-		x1, y1, z1, //0
-		x1, y2, z1, //1
-		x1, y1, z2, //2
-		x1, y2, z2, //3
-		x2, y1, z1, //4
-		x2, y2, z1, //5
-		x2, y1, z2, //6
-		x2, y2, z2 //7
+		0.5, -0.5, 0.5,
+		-0.5, -0.5, 0.5,
+		0.5, -0.5, -0.5,
+		-0.5, -0.5, 0.5,
+		-0.5, -0.5, -0.5,
+		0.5, -0.5, -0.5,
+		0.5, 0.5, -0.5,
+		0.5, 0.5, 0.5,
+		0.5, -0.5, -0.5,
+		0.5, 0.5, 0.5,
+		0.5, -0.5, 0.5,
+		0.5, -0.5, -0.5,
+		-0.5, 0.5, -0.5,
+		0.5, 0.5, -0.5,
+		-0.5, -0.5, -0.5,
+		0.5, 0.5, -0.5,
+		0.5, -0.5, -0.5,
+		-0.5, -0.5, -0.5,
+		0.5, 0.5, -0.5,
+		-0.5, 0.5, -0.5,
+		0.5, 0.5, 0.5,
+		-0.5, 0.5, -0.5,
+		-0.5, 0.5, 0.5,
+		0.5, 0.5, 0.5,
+		-0.5, 0.5, 0.5,
+		-0.5, 0.5, -0.5,
+		-0.5, -0.5, 0.5,
+		-0.5, 0.5, -0.5,
+		-0.5, -0.5, -0.5,
+		-0.5, -0.5, 0.5,
+		0.5, 0.5, 0.5,
+		-0.5, 0.5, 0.5,
+		0.5, -0.5, 0.5,
+		-0.5, 0.5, 0.5,
+		-0.5, -0.5, 0.5,
+		0.5, -0.5, 0.5
 	};
 
-	std::vector<GLfloat> cbuffer_data =
+	std::vector<GLfloat> normal_data =
 	{
-		0.6f, 0.7f, 0.9f,
-		1.0f, 0.8f, 0.9f,
-		0.6f, 0.2f, 0.7f,
-		0.9f, 0.9f, 0.7f,
-		0.2f, 0.5f, 0.8f,
-		1.0f, 0.8f, 0.9f,
-		0.1f, 0.0f, 0.8f,
-		0.9f, 0.6f, 0.1f
+		-0, -1, -0,
+		-0, -1, -0,
+		-0, -1, -0,
+		0, -1, 0,
+		0, -1, 0,
+		0, -1, 0,
+		1, 0, -0,
+		1, 0, -0,
+		1, 0, -0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		0, 0, -1,
+		0, 0, -1,
+		0, 0, -1,
+		0, -0, -1,
+		0, -0, -1,
+		0, -0, -1,
+		0, 1, -0,
+		0, 1, -0,
+		0, 1, -0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		-1, -0, -0,
+		-1, -0, -0,
+		-1, -0, -0,
+		-1, 0, 0,
+		-1, 0, 0,
+		-1, 0, 0,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1
+	};
+
+	std::vector<GLfloat> uv_data = 
+	{ 
+		1, 0, 
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0,
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0,
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0,
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0,
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1,
+		1, 0,
+		0, 0,
+		1, 1,
+		0, 0,
+		0, 1,
+		1, 1
 	};
 
 	std::vector<GLushort> index_buffer_data =
 	{
-		0, 4, 1, 5, 3, 7, 2, 6, 0, 4,
-		0xFFFF,
-		1, 0, 3, 2,
-		0xFFFF,
-		5, 4, 7, 6,
+		0, 1, 2,
+		3, 4, 5,
+		6, 7, 8,
+		9, 10, 11,
+		12, 13, 14,
+		15, 16, 17,
+		18, 19, 20,
+		21, 22, 23,
+		24, 25, 26,
+		27, 28, 29,
+		30, 31, 32,
+		33, 34, 35,
 	};
+
 
 	#pragma endregion
 
-	this->VAO = VertexArrayObject(vbuffer_data, cbuffer_data, index_buffer_data, vertposition_loc, vertcolor_loc);
+	this->VAO = VertexArrayObject(vbuffer_data, color_buffer_data, normal_data, uv_data, index_buffer_data, vertposition_loc, vertex_UV);
 
 }
 
-SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc)
+SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertex_UV)
 {
 
 	this->radius = radius;	
@@ -1451,11 +1588,17 @@ SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::ve
 	this->scale = gmtl::makeScale<gmtl::Matrix44f>(gmtl::Vec3f(this->radius, this->radius, this->radius));
 	this->scale.setState(gmtl::Matrix44f::AFFINE);
 
-	this->VAO = VertexArrayObject(vertex_data, color_buffer_data, index_data, vertposition_loc, vertcolor_loc);
+	this->VAO = VertexArrayObject(vertex_data, color_buffer_data, normal_data, uv_data, index_data, vertposition_loc, vertex_UV);
+
 }
 
 
 SceneObject::~SceneObject()
 {
 
+}
+
+void SceneObject::SetTexture(Texture t)
+{
+	this->texture = t;
 }

@@ -17,20 +17,43 @@
 
 using namespace std;
 
+struct Texture
+{
+	unsigned int textureWidth, textureHeight;
+	unsigned char *imageData;
+
+	Texture() {}
+	Texture(unsigned int textureWidth, unsigned int textureHeight, unsigned char *imageData)
+	{
+		this->textureWidth = textureWidth;
+		this->textureHeight = textureHeight;
+		this->imageData = imageData;
+	}
+};
+
 class SceneObject
 {
 
 public:
 
 	SceneObject();
-	SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertcolor_loc);
-	SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc);
+	SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV);
+	SceneObject(float radius, 
+				std::vector<GLfloat> vertex_data, 
+				std::vector<GLfloat> normal_data, 
+				std::vector<GLfloat> uv_data, 
+				std::vector<GLushort> index_data, 
+				GLuint vertposition_loc, 
+				GLuint vertex_UV);
 	~SceneObject();
+
+	void SetTexture(Texture t);
 
 	gmtl::Matrix44f matrix, scale;
 	float length, width, depth, radius;
 	VertexArrayObject VAO;
 
+	Texture texture;
 
 private:
 

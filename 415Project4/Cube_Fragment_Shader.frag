@@ -1,12 +1,17 @@
-// For newer cards, use "#version 330 core" or "#version 400 core"
-#version 330
+#version 330 core
 
-// color from scan conversion (interpolated from vertex shader output)
-in vec3 fragmentColor;
+// Texture coordinate values from the vertex shaders
+in vec2 UV;
 
-// final color to write into output buffer
+in vec3 normal;
+
+// Ouput data
 out vec3 color;
 
+// Values that stay constant for the whole mesh.
+uniform sampler2D texture_Colors;
+
 void main(){
-	color = fragmentColor;
+
+	color = texture2D( texture_Colors, UV ).rgb;
 }

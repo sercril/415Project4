@@ -1,24 +1,20 @@
-// For newer cards, use version 330 core or version 400 core
 #version 330
 
-// incoming vertex information
-layout (location = 0) in vec4 vertexPosition; //If glVertexAttribPointer specifies vertices are 3D, OpenGL will add fourth coordinate w = 1 for this vec4 input.
-layout (location = 1) in vec3 vertexColor;
+// Input vertex data
+in vec3 vertexPosition;
+in vec2 vertexUV;
+in vec3 normal;
 
-// color to pass on (output)
-out vec3 fragmentColor;
+// Output texture coordinates data ; will be interpolated for each fragment.
+out vec2 UV;
 
-// matrix : uniform across primitive
 uniform mat4 Matrix;
 
-void main()
-{
-// apply application-provided transform
-	gl_Position = Matrix * vertexPosition;
-	
+void main(){
+	// Output position of the vertex, in clip space : MVP * position
+	gl_Position = Matrix * vec4(vertexPosition,1);
 
-
-// color is passed through to scan conversion and fragment shader
-	fragmentColor = vertexColor;
+	// UV of the vertex. No special space for this one.
+	UV = vertexUV;
 }
 
