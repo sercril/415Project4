@@ -69,12 +69,14 @@
   <ItemGroup>
     <ClInclude Include="LoadShaders.h" />
     <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexArrayObject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LoadShaders.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="VertexArrayObject.cpp" />
   </ItemGroup>
   <ItemGroup>

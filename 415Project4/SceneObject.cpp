@@ -1387,14 +1387,6 @@ SceneObject::SceneObject(float length, float width, float depth, GLuint vertposi
 	this->width = width;
 	this->depth = depth;
 
-	/*x2 = length;
-
-	y1 = width / 2;
-	y2 = y1 - width;
-
-	z1 = depth / 2;
-	z2 = z1 - depth;*/
-
 	x2 = 1.0f;
 
 	y1 = 1.0f / 2;
@@ -1449,7 +1441,7 @@ SceneObject::SceneObject(float length, float width, float depth, GLuint vertposi
 
 }
 
-SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc)
+SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc)
 {
 
 	this->radius = radius;	

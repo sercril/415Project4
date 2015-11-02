@@ -12,6 +12,8 @@
 #include <gmtl\gmtl.h>
 #include <gmtl\Matrix.h>
 
+#include "Vertex.h"
+
 using namespace std;
 
 class VertexArrayObject
@@ -19,12 +21,22 @@ class VertexArrayObject
 	public:
 		VertexArrayObject();
 		VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertcolor_loc);
+		VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertcolor_loc);
 		~VertexArrayObject();
 
+		void GenerateNormals();
+
 		GLuint vertexArray;
+		std::vector<Vertex> verticies;
 
 	private:
+		void LoadVerticies(std::vector<GLfloat> vertexData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData);
+
 		GLuint vertexBuffer, colorBuffer, indexBuffer;
+
+		std::vector<GLfloat> vertex_data;
+		std::vector<GLushort> index_data;
+
 };
 
 

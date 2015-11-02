@@ -16,6 +16,7 @@
 
 #include "LoadShaders.h"
 #include "SceneObject.h"
+#include "Vertex.h"
 
 #pragma comment (lib, "glew32.lib")
 #pragma warning (disable : 4996) // Windows ; consider instead replacing fopen with fopen_s
@@ -45,6 +46,7 @@ struct SceneNode
 };
 
 
+
 struct Keyframe
 {
 	unsigned long time; // Timestamp, milliseconds since first record. Assume nondecreasing order.
@@ -68,6 +70,8 @@ struct Keyframe
 int mouseX, mouseY,
 mouseDeltaX, mouseDeltaY;
 
+bool genNorms;
+
 float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 		nearValue, farValue, leftValue, rightValue, topValue, bottomValue;
 
@@ -85,9 +89,11 @@ gmtl::Matrix44f view, modelView, viewScale, camera, projection, normalMatrix,
 
 
 std::vector<SceneNode*> sceneGraph;
-std::vector<GLfloat> ball_vertex_data;
+std::vector<GLfloat> ball_vertex_data, ball_normal_data, ball_uv_data;
 std::vector<GLushort> ball_index_data;
 std::vector<Keyframe> keyframes;
+
+std::vector<Vertex> ballData;
 
 #pragma endregion
 
@@ -137,7 +143,7 @@ void cameraRotate()
 void importBallData()
 {
 	ifstream fp;
-	int i = 0, j = 0, numVerticies, numIndicies, numPolygons;
+	int i = 0, j = 0, k=0, numVerticies, numIndicies, numPolygons;
 
 	fp.open("SpherePNT.txt", ios_base::in);
 
@@ -152,11 +158,14 @@ void importBallData()
 			{
 				in >> numVerticies;
 				ball_vertex_data.resize(numVerticies*3);
+				ball_normal_data.resize(numVerticies * 3);
+				ball_uv_data.resize(numVerticies * 2);
 			}
 			else if (i > 0 && i <= numVerticies)
 			{
-				in >> ball_vertex_data[j] >> ball_vertex_data[j+1] >> ball_vertex_data[j+2];
+				in >> ball_vertex_data[j] >> ball_vertex_data[j + 1] >> ball_vertex_data[j + 2] >> ball_normal_data[j] >> ball_normal_data[j + 1] >> ball_normal_data[j + 2] >> ball_uv_data[k] >> ball_uv_data[k+1];
 				j += 3;
+				k += 2;
 			}
 			else if (i == (numVerticies + 1))
 			{
@@ -170,7 +179,6 @@ void importBallData()
 				j+=3;
 			}
 		}
-
 
 		fp.close();
 	}
@@ -188,7 +196,7 @@ void buildGraph()
 	importBallData();
 	ball->type = BALL;
 	ball->parent = NULL;
-	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_index_data, vertposition_loc, vertcolor_loc);
+	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertcolor_loc);
 	ball->children.clear();
 	sceneGraph.push_back(ball);
 
@@ -221,6 +229,12 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			gmtl::Matrix44f newMV = mv * graph[i]->object.matrix;
 
 			newMV = newMV * graph[i]->object.scale;
+
+
+			if (genNorms)
+			{
+				graph[i]->object.VAO.GenerateNormals();
+			}
 
 			//Render
 			renderTransform = projection * newMV;
@@ -286,13 +300,16 @@ void keyboard(unsigned char key, int x, int y)
 	switch (key) 
 	{
 
+		case 'n':
+			genNorms = true;
+			break;
+
 		case 'Z':
 			cameraZFactor += 10.f;
 			cameraZ = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, 0.0f, cameraZFactor));
 			cameraZ.setState(gmtl::Matrix44f::TRANS);
 			view = azimuthRotation * elevationRotation * cameraZ;
-			gmtl::invert(view);
-			cout << cameraZFactor << endl;
+			gmtl::invert(view);			
 			break;
 
 		case 'z':
@@ -301,7 +318,6 @@ void keyboard(unsigned char key, int x, int y)
 			cameraZ.setState(gmtl::Matrix44f::TRANS);
 			view = azimuthRotation * elevationRotation * cameraZ;
 			gmtl::invert(view);
-			cout << cameraZFactor << endl;
 			break;
 
 		case 'q': case 'Q': case 033 /* Escape key */:
@@ -327,7 +343,7 @@ void display()
 
 	
 	renderGraph(sceneGraph, view);
-
+	genNorms = false;
 	//Ask GL to execute the commands from the buffer
 	glutSwapBuffers();	// *** if you are using GLUT_DOUBLE, use glutSwapBuffers() instead 
 
@@ -349,6 +365,7 @@ void init()
 
 	elevation = azimuth = 0;
 	ballRadius = floorY = 4.0f;
+	genNorms = false;
 
 	// Enable depth test (visible surface determination)
 	glEnable(GL_DEPTH_TEST);

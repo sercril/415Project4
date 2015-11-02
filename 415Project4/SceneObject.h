@@ -24,7 +24,7 @@ public:
 
 	SceneObject();
 	SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertcolor_loc);
-	SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc);
+	SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertcolor_loc);
 	~SceneObject();
 
 	gmtl::Matrix44f matrix, scale;
