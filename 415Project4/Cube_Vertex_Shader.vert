@@ -1,24 +1,32 @@
 #version 330
 
 // Input vertex data
-in vec3 vertexPosition;
+in vec4 vertexPosition;
 in vec2 vertexUV;
 in vec3 vertexNormal;
 
 // Output texture coordinates data ; will be interpolated for each fragment.
 out vec2 UV;
 out vec3 fragmentNormal;
+out vec4 fragmentPosition;
 
 uniform mat4 Matrix;
 uniform mat4 NormalMatrix;
+uniform mat4 modelview;
+
+
 
 void main(){
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position = Matrix * vec4(vertexPosition,1);
+	gl_Position = Matrix * vertexPosition;
+
+	mat3 matrixDummy = mat3(transpose(inverse(modelview)));
 
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 
-	fragmentNormal = (NormalMatrix * vec4(vertexNormal,0)).xyz;
+	fragmentNormal = (matrixDummy * vertexNormal).xyz;
+
+	fragmentPosition = (modelview * vertexPosition);
 }
 

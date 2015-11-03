@@ -38,7 +38,8 @@ struct SceneNode
 	ObjectType type;
 	SceneNode* parent;
 	std::vector<SceneNode *> children;
-	int id;
+	float specCoefficient, shine;
+
 
 	SceneNode()
 	{
@@ -81,7 +82,10 @@ float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 
 struct Keyframe c;
 
-GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location, NormalMatrix, a_parameter_LightID;
+GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, modelview_loc,
+		lightPosition_loc, specCoefficient_loc, upVector_loc, 
+		ambientLight_loc, diffuseLight_loc, specularLight_loc, shine_loc,
+		vertex_UV, texture_location, NormalMatrix;
 
 GLenum errCode;
 
@@ -99,7 +103,7 @@ std::vector<Keyframe> keyframes;
 
 std::vector<Vertex> ballData;
 
-gmtl::Vec4f a_parameter_Light_Component;
+gmtl::Point3f lightPosition;
 
 #pragma endregion
 
@@ -213,8 +217,17 @@ void buildGraph()
 	ball->parent = NULL;
 	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV, normal_loc);
 	ball->children.clear();
+
+	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, 0.0f, -5.0f));
+	initialTranslation.setState(gmtl::Matrix44f::TRANS);
+	ball->object.matrix = ball->object.matrix * initialTranslation;
+
 	LoadTexture("moonmap.ppm");
 	ball->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
+
+	ball->specCoefficient = 1.0f;
+	ball->shine = 1.0f;
+
 	sceneGraph.push_back(ball);
 
 	//Floor
@@ -229,6 +242,10 @@ void buildGraph()
 	floor->object.matrix = floor->object.matrix * initialTranslation;
 	LoadTexture("marbles2.ppm");
 	floor->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
+
+	floor->specCoefficient = 1.0f;
+	floor->shine = 1.0f;
+
 	sceneGraph.push_back(floor);
 }
 
@@ -267,10 +284,19 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			// Send a different transformation matrix to the shader
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
+			
+			lightPosition = mv * lightPosition;			
 
-			a_parameter_Light_Component.set(0.58f, 0.58f, 0.58f, 1.0f);
+			glUniform3f(lightPosition_loc, lightPosition[0], lightPosition[1], lightPosition[2]);
+			glUniform4f(upVector_loc, mv[1][0], mv[1][1], mv[1][2], 0);
+			glUniform1f(specCoefficient_loc, graph[i]->specCoefficient);
+			glUniform1f(shine_loc, graph[i]->shine);
 
-			glUniform4f(a_parameter_LightID, a_parameter_Light_Component[0], a_parameter_Light_Component[1], a_parameter_Light_Component[2], a_parameter_Light_Component[3]);
+			glUniform3f(ambientLight_loc, 1.0f, 0.0f, 0.0f);
+			glUniform3f(diffuseLight_loc, 0.0f, 1.0f, 0.0f);
+			glUniform3f(specularLight_loc, 0.0f, 0.0f, 1.0f);
+
+			glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, &newMV[0][0]);
 
 			// Draw the transformed cuboid
 			glEnable(GL_PRIMITIVE_RESTART);
@@ -399,7 +425,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 
 	// OpenGL background color
-	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// Load/compile/link shaders and set to use for rendering
 	ShaderInfo shaders[] = { { GL_VERTEX_SHADER, "Cube_Vertex_Shader.vert" },
@@ -412,14 +438,22 @@ void init()
 	//Get the shader parameter locations for passing data to shaders
 	vertposition_loc = glGetAttribLocation(program, "vertexPosition");
 	vertcolor_loc = glGetAttribLocation(program, "vertexColor");
-	vertex_UV = glGetAttribLocation(program, "vertexUV");
-	Matrix_loc = glGetUniformLocation(program, "Matrix");
+	vertex_UV = glGetAttribLocation(program, "vertexUV");	
 	normal_loc = glGetAttribLocation(program, "vertexNormal");
-	NormalMatrix = glGetUniformLocation(program, "NormalMatrix");
-	a_parameter_LightID = glGetUniformLocation(program, "a_parameter");
-
 	
+	Matrix_loc = glGetUniformLocation(program, "Matrix");
+	NormalMatrix = glGetUniformLocation(program, "NormalMatrix");
+	lightPosition_loc = glGetUniformLocation(program, "lightPosition");
+	upVector_loc = glGetUniformLocation(program, "upVector");
+	specCoefficient_loc = glGetUniformLocation(program, "specCoefficient");
 	texture_location = glGetUniformLocation(program, "texture_Colors");
+	shine_loc = glGetUniformLocation(program, "shine");
+
+	ambientLight_loc = glGetUniformLocation(program, "ambientLight");
+	diffuseLight_loc = glGetUniformLocation(program, "diffuseLight");
+	specularLight_loc = glGetUniformLocation(program, "specularLight");
+
+	modelview_loc = glGetUniformLocation(program, "modelview");
 
 	glActiveTexture(GL_TEXTURE0);
 
@@ -430,6 +464,8 @@ void init()
 	gmtl::identity(view);
 	gmtl::identity(modelView);
 	gmtl::identity(viewRotation);
+
+	lightPosition.set(0.0f, 10.0f, 0.0f);
 
 	nearValue = 1.0f;
 	farValue = 1000.0f;
