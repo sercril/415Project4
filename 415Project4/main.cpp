@@ -103,7 +103,7 @@ std::vector<Keyframe> keyframes;
 
 std::vector<Vertex> ballData;
 
-gmtl::Point3f lightPosition;
+gmtl::Point3f lightPosition, lightPoint;
 
 #pragma endregion
 
@@ -285,9 +285,8 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
 			
-			lightPosition = mv * lightPosition;			
-
-			glUniform3f(lightPosition_loc, lightPosition[0], lightPosition[1], lightPosition[2]);
+			lightPoint = mv * lightPosition;
+			glUniform3f(lightPosition_loc, lightPoint[0], lightPoint[1], lightPoint[2]);
 			glUniform4f(upVector_loc, mv[1][0], mv[1][1], mv[1][2], 0);
 			glUniform1f(specCoefficient_loc, graph[i]->specCoefficient);
 			glUniform1f(shine_loc, graph[i]->shine);

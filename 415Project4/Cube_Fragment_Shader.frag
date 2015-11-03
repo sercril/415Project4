@@ -28,13 +28,13 @@ void main(){
 
 	//normLight = normalize(lightPosition);
 
-	lightDirection = normalize( lightPosition - vec3(fragmentPosition));
+	lightDirection = normalize( lightPosition - fragmentPosition.xyz);
 
-	V = normalize(-vec3(fragmentPosition));
+	V = normalize(-fragmentPosition.xyz);
 
 	normNormal = normalize(fragmentNormal);
 
-	lightDotNormal = dot(lightDirection, normNormal);
+	lightDotNormal = dot(normNormal, lightDirection);
 
 	R = normalize(2 * lightDotNormal * normNormal - lightDirection);
 	

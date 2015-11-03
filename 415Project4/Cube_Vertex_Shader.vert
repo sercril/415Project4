@@ -20,7 +20,7 @@ void main(){
 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position = Matrix * vertexPosition;
 
-	mat3 matrixDummy = mat3(transpose(inverse(modelview)));
+	mat3 matrixDummy = transpose(inverse(mat3(modelview)));
 
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
