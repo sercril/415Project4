@@ -70,7 +70,8 @@ struct Keyframe
 #define INDECIES 10000
 
 int mouseX, mouseY,
-mouseDeltaX, mouseDeltaY;
+mouseDeltaX, mouseDeltaY,
+ambientFlag, diffuseFlag, specFlag;
 
 unsigned int textureWidth, textureHeight;
 unsigned char *imageData;
@@ -78,13 +79,15 @@ unsigned char *imageData;
 bool genNorms;
 
 float azimuth, elevation, ballRadius, floorY, cameraZFactor,
-		nearValue, farValue, leftValue, rightValue, topValue, bottomValue;
+		nearValue, farValue, leftValue, rightValue, topValue, bottomValue,
+		ballSpec, ballShine, floorSpec, floorShine;
 
 struct Keyframe c;
 
 GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, modelview_loc,
 		lightPosition_loc, specCoefficient_loc, upVector_loc, 
 		ambientLight_loc, diffuseLight_loc, specularLight_loc, shine_loc,
+		ambientFlag_loc, diffuseFlag_loc, specularFlag_loc,
 		vertex_UV, texture_location, NormalMatrix;
 
 GLenum errCode;
@@ -104,6 +107,8 @@ std::vector<Keyframe> keyframes;
 std::vector<Vertex> ballData;
 
 gmtl::Point3f lightPosition, lightPoint;
+
+gmtl::Vec3f ballDelta;
 
 #pragma endregion
 
@@ -225,8 +230,8 @@ void buildGraph()
 	LoadTexture("moonmap.ppm");
 	ball->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 
-	ball->specCoefficient = 1.0f;
-	ball->shine = 1.0f;
+	ball->specCoefficient = ballSpec;
+	ball->shine = ballShine;
 
 	sceneGraph.push_back(ball);
 
@@ -240,11 +245,11 @@ void buildGraph()
 	//Make it look good
 	initialTranslation = initialTranslation;
 	floor->object.matrix = floor->object.matrix * initialTranslation;
-	LoadTexture("marbles2.ppm");
+	LoadTexture("dirt.ppm");
 	floor->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 
-	floor->specCoefficient = 1.0f;
-	floor->shine = 1.0f;
+	floor->specCoefficient = floorSpec;
+	floor->shine = floorShine;
 
 	sceneGraph.push_back(floor);
 }
@@ -259,6 +264,23 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 	{
 		for (int i = 0; i < graph.size(); ++i)
 		{
+			
+
+			
+			switch (graph[i]->type)
+			{
+				case BALL:
+					graph[i]->object.matrix *= gmtl::makeTrans<gmtl::Matrix44f>(ballDelta);
+					graph[i]->specCoefficient = ballSpec;
+					graph[i]->shine = ballShine;
+					break; 
+				case FLOOR:
+					graph[i]->specCoefficient = floorSpec;
+					graph[i]->shine = floorShine;
+					break;
+			}
+
+
 			gmtl::Matrix44f newMV = mv * graph[i]->object.matrix;
 
 			newMV = newMV * graph[i]->object.scale;
@@ -294,6 +316,10 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniform3f(ambientLight_loc, 1.0f, 0.0f, 0.0f);
 			glUniform3f(diffuseLight_loc, 0.0f, 1.0f, 0.0f);
 			glUniform3f(specularLight_loc, 0.0f, 0.0f, 1.0f);
+
+			glUniform1i(ambientFlag_loc, ambientFlag);
+			glUniform1i(diffuseFlag_loc, diffuseFlag);
+			glUniform1i(specularFlag_loc, specFlag);
 
 			glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, &newMV[0][0]);
 
@@ -358,6 +384,66 @@ void keyboard(unsigned char key, int x, int y)
 			genNorms = true;
 			break;
 
+		case 'i':
+			ambientFlag = (ambientFlag == 1) ? 0 : 1;
+			break;
+
+		case 'o':
+			diffuseFlag = (diffuseFlag == 1) ? 0 : 1;
+			break;
+
+		case 'p':
+			specFlag = (specFlag == 1) ? 0 : 1;
+			break;
+		
+
+		case 'w':
+			ballDelta = gmtl::Vec3f(0, 1.0f, 0);
+			break;
+		case 'a':
+			ballDelta = gmtl::Vec3f(-1.0f, 0, 0);
+			break;
+		case 's':
+			ballDelta = gmtl::Vec3f(0, -1.0f, 0);
+			break;
+		case 'd':
+			ballDelta = gmtl::Vec3f(1.0f, 0, 0);
+			break;
+		case 'q':
+			ballDelta = gmtl::Vec3f(0, 0, -1.0f);
+			break;
+		case 'e':
+			ballDelta = gmtl::Vec3f(0, 0, 1.0f);
+			break;
+
+
+		case 'h':
+			ballSpec += 0.01f;
+			break;
+		case 'H':
+			ballSpec -= 0.01f;
+			break;
+		case 'j':
+			ballShine += 0.01f;
+			break;
+		case 'J':
+			ballShine -= 0.01f;
+			ballShine = max(0.0f, floorShine);
+			break;
+		case 'k':
+			floorSpec += 0.01f;
+			break;
+		case 'K':
+			floorSpec -= 0.01f;
+			break;
+		case 'l':
+			floorShine += 0.01f;
+			break;
+		case 'L':
+			floorShine -= 0.01f;
+			floorShine = max(0.0f,floorShine);
+			break;
+
 		case 'Z':
 			cameraZFactor += 10.f;
 			cameraZ = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, 0.0f, cameraZFactor));
@@ -374,7 +460,7 @@ void keyboard(unsigned char key, int x, int y)
 			gmtl::invert(view);
 			break;
 
-		case 'q': case 'Q': case 033 /* Escape key */:
+		case 033 /* Escape key */:
 			exit(EXIT_SUCCESS);
 			break;
 	}
@@ -410,7 +496,7 @@ void display()
 
 void idle()
 {
-
+	ballDelta = gmtl::Vec3f(0,0,0);
 }
 
 void init()
@@ -419,6 +505,10 @@ void init()
 	elevation = azimuth = 0;
 	ballRadius = floorY = 4.0f;
 	genNorms = false;
+
+	ballShine = floorShine = 0.1f;
+	ballSpec = floorSpec = 0.2f;
+
 
 	// Enable depth test (visible surface determination)
 	glEnable(GL_DEPTH_TEST);
@@ -451,6 +541,10 @@ void init()
 	ambientLight_loc = glGetUniformLocation(program, "ambientLight");
 	diffuseLight_loc = glGetUniformLocation(program, "diffuseLight");
 	specularLight_loc = glGetUniformLocation(program, "specularLight");
+
+	ambientFlag_loc = glGetUniformLocation(program, "ambientFlag");
+	diffuseFlag_loc = glGetUniformLocation(program, "diffuseFlag");
+	specularFlag_loc = glGetUniformLocation(program, "specFlag");
 
 	modelview_loc = glGetUniformLocation(program, "modelview");
 
@@ -496,6 +590,10 @@ void init()
 	gmtl::invert(view);
 
 	buildGraph();
+
+	ambientFlag = 1;
+	diffuseFlag = 1;
+	specFlag = 1;
 	
 }
 

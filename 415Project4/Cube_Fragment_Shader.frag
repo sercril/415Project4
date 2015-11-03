@@ -19,7 +19,9 @@ uniform vec3 specularLight;
 uniform float specCoefficient;
 uniform float shine;
 
-
+uniform int ambientFlag;
+uniform int diffuseFlag;
+uniform int specFlag;
 
 void main(){
 
@@ -37,17 +39,23 @@ void main(){
 	lightDotNormal = dot(normNormal, lightDirection);
 
 	R = normalize(2 * lightDotNormal * normNormal - lightDirection);
+
+	color.rgb = vec3(0,0,0);
 	
-	color = texture2D( texture_Colors, UV ).rgb * dot(fragmentNormal, lightDirection);
+	if(ambientFlag == 1)
+	{
+		color = color + ambientLight * texture2D( texture_Colors, UV ).rgb * (0.5f + 0.5f * dot(normNormal, normalize(upVector.xyz)));
+	}
 
-	color = ambientLight 
-			* texture2D( texture_Colors, UV ).rgb 
-			* (0.5f + 0.5f * dot(normNormal, normalize(upVector.xyz)))
-			+ diffuseLight
-			* texture2D( texture_Colors, UV ).rgb
-			* (max(0.0f, dot(normNormal,lightDirection))) + specCoefficient * specularLight * pow(max(0.0f,dot(V,R)), shine);
+	if(diffuseFlag == 1)
+	{
+		color = color + diffuseLight * texture2D( texture_Colors, UV ).rgb * (max(0.0f, dot(normNormal,lightDirection)));
+	}
 
-	//color = specCoefficient * specularLight * pow(max(0.0f,dot(V,R)), shine);
-	//color = lightDirection;
+	if(specFlag == 1)
+	{
+		color = color + specCoefficient * specularLight * pow(max(0.0f,dot(V,R)), shine);
+	}
+
 
 }
