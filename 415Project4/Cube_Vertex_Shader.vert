@@ -20,6 +20,5 @@ void main(){
 	UV = vertexUV;
 
 	fragmentNormal = (NormalMatrix * vec4(vertexNormal,0)).xyz;
-	//fragmentNormal = vertexNormal;
 }
 

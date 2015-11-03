@@ -81,7 +81,7 @@ float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 
 struct Keyframe c;
 
-GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location, NormalMatrix;
+GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location, NormalMatrix, a_parameter_LightID;
 
 GLenum errCode;
 
@@ -98,6 +98,8 @@ std::vector<GLushort> ball_index_data;
 std::vector<Keyframe> keyframes;
 
 std::vector<Vertex> ballData;
+
+gmtl::Vec4f a_parameter_Light_Component;
 
 #pragma endregion
 
@@ -257,9 +259,6 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			
-
-			
 
 			//Render
 			renderTransform = projection * newMV;
@@ -268,6 +267,10 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			// Send a different transformation matrix to the shader
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
+
+			a_parameter_Light_Component.set(0.58f, 0.58f, 0.58f, 1.0f);
+
+			glUniform4f(a_parameter_LightID, a_parameter_Light_Component[0], a_parameter_Light_Component[1], a_parameter_Light_Component[2], a_parameter_Light_Component[3]);
 
 			// Draw the transformed cuboid
 			glEnable(GL_PRIMITIVE_RESTART);
@@ -413,6 +416,8 @@ void init()
 	Matrix_loc = glGetUniformLocation(program, "Matrix");
 	normal_loc = glGetAttribLocation(program, "vertexNormal");
 	NormalMatrix = glGetUniformLocation(program, "NormalMatrix");
+	a_parameter_LightID = glGetUniformLocation(program, "a_parameter");
+
 	
 	texture_location = glGetUniformLocation(program, "texture_Colors");
 
