@@ -1378,7 +1378,7 @@ SceneObject::SceneObject()
 
 }
 
-SceneObject::SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV)
+SceneObject::SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc)
 {
 
 	float x1 = 0, x2, y1, y2, z1, z2;
@@ -1574,11 +1574,11 @@ SceneObject::SceneObject(float length, float width, float depth, GLuint vertposi
 
 	#pragma endregion
 
-	this->VAO = VertexArrayObject(vbuffer_data, color_buffer_data, normal_data, uv_data, index_buffer_data, vertposition_loc, vertex_UV);
+	this->VAO = VertexArrayObject(vbuffer_data, color_buffer_data, normal_data, uv_data, index_buffer_data, vertposition_loc, vertex_UV, normal_loc);
 
 }
 
-SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertex_UV)
+SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::vector<GLfloat> normal_data, std::vector<GLfloat> uv_data, std::vector<GLushort> index_data, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc)
 {
 
 	this->radius = radius;	
@@ -1588,7 +1588,7 @@ SceneObject::SceneObject(float radius, std::vector<GLfloat> vertex_data, std::ve
 	this->scale = gmtl::makeScale<gmtl::Matrix44f>(gmtl::Vec3f(this->radius, this->radius, this->radius));
 	this->scale.setState(gmtl::Matrix44f::AFFINE);
 
-	this->VAO = VertexArrayObject(vertex_data, color_buffer_data, normal_data, uv_data, index_data, vertposition_loc, vertex_UV);
+	this->VAO = VertexArrayObject(vertex_data, color_buffer_data, normal_data, uv_data, index_data, vertposition_loc, vertex_UV, normal_loc);
 
 }
 

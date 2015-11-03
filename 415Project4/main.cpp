@@ -81,7 +81,7 @@ float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 
 struct Keyframe c;
 
-GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location;
+GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, vertex_UV, texture_location, NormalMatrix;
 
 GLenum errCode;
 
@@ -89,7 +89,7 @@ const GLubyte *errString;
 
 
 gmtl::Matrix44f view, modelView, viewScale, camera, projection, normalMatrix,
-				elevationRotation, azimuthRotation, cameraZ;
+				elevationRotation, azimuthRotation, cameraZ, viewRotation;
 
 
 std::vector<SceneNode*> sceneGraph;
@@ -131,6 +131,10 @@ void cameraRotate()
 	elevationRotation.setState(gmtl::Matrix44f::ORTHOGONAL);
 
 	azimuthRotation.setState(gmtl::Matrix44f::ORTHOGONAL);
+
+
+	viewRotation = azimuthRotation * elevationRotation;
+	gmtl::invert(viewRotation);
 
 	view = azimuthRotation * elevationRotation * cameraZ;
 
@@ -205,22 +209,23 @@ void buildGraph()
 	importBallData();
 	ball->type = BALL;
 	ball->parent = NULL;
-	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV);
+	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV, normal_loc);
 	ball->children.clear();
-	LoadTexture("marbles2.ppm");
+	LoadTexture("moonmap.ppm");
 	ball->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 	sceneGraph.push_back(ball);
 
 	//Floor
 	floor->type = FLOOR;
 	floor->parent = NULL;
-	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius * 10, vertposition_loc, vertex_UV);
+	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius * 10, vertposition_loc, vertex_UV, normal_loc);
 	floor->children.clear();
 	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, floorY*-1.0f, 0.0f));
 	initialTranslation.setState(gmtl::Matrix44f::TRANS);
 	//Make it look good
 	initialTranslation = initialTranslation;
 	floor->object.matrix = floor->object.matrix * initialTranslation;
+	LoadTexture("marbles2.ppm");
 	floor->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
 	sceneGraph.push_back(floor);
 }
@@ -262,6 +267,7 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glBindVertexArray(graph[i]->object.VAO.vertexArray);
 			// Send a different transformation matrix to the shader
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
+			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
 
 			// Draw the transformed cuboid
 			glEnable(GL_PRIMITIVE_RESTART);
@@ -405,7 +411,8 @@ void init()
 	vertcolor_loc = glGetAttribLocation(program, "vertexColor");
 	vertex_UV = glGetAttribLocation(program, "vertexUV");
 	Matrix_loc = glGetUniformLocation(program, "Matrix");
-	normal_loc = glGetAttribLocation(program, "normal");
+	normal_loc = glGetAttribLocation(program, "vertexNormal");
+	NormalMatrix = glGetUniformLocation(program, "NormalMatrix");
 	
 	texture_location = glGetUniformLocation(program, "texture_Colors");
 
@@ -417,6 +424,7 @@ void init()
 
 	gmtl::identity(view);
 	gmtl::identity(modelView);
+	gmtl::identity(viewRotation);
 
 	nearValue = 1.0f;
 	farValue = 1000.0f;

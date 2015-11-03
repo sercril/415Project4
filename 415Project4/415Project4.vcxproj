@@ -86,6 +86,7 @@
     <None Include="Cube_Fragment_Shader.frag" />
     <None Include="Cube_Vertex_Shader.vert" />
     <None Include="marbles2.ppm" />
+    <None Include="moonmap.ppm" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

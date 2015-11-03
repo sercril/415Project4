@@ -37,14 +37,15 @@ class SceneObject
 public:
 
 	SceneObject();
-	SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV);
+	SceneObject(float length, float width, float depth, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc);
 	SceneObject(float radius, 
 				std::vector<GLfloat> vertex_data, 
 				std::vector<GLfloat> normal_data, 
 				std::vector<GLfloat> uv_data, 
 				std::vector<GLushort> index_data, 
 				GLuint vertposition_loc, 
-				GLuint vertex_UV);
+				GLuint vertex_UV, 
+				GLuint normal_loc);
 	~SceneObject();
 
 	void SetTexture(Texture t);

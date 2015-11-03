@@ -3,7 +3,7 @@
 // Texture coordinate values from the vertex shaders
 in vec2 UV;
 
-in vec3 normal;
+in vec3 fragmentNormal;
 
 // Ouput data
 out vec3 color;
@@ -14,4 +14,5 @@ uniform sampler2D texture_Colors;
 void main(){
 
 	color = texture2D( texture_Colors, UV ).rgb;
+	color = fragmentNormal;
 }
