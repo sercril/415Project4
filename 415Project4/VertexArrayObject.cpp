@@ -22,6 +22,8 @@ VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vecto
 	this->vertex_data = vertexData;
 	this->index_data = indexData;
 
+	this->normal_loc = normal_loc;
+
 	/*** VERTEX ARRAY OBJECT SETUP***/
 	// Create/Generate the Vertex Array Object
 	glGenVertexArrays(1, &this->vertexArray);
@@ -57,8 +59,8 @@ VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vecto
 	glGenBuffers(1, &this->normalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->normalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(&normalData[0])*normalData.size(), &normalData[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(normal_loc, 3, GL_FLOAT, GL_FALSE, 0, ((void*)0));
-	glEnableVertexAttribArray(normal_loc);
+	glVertexAttribPointer(this->normal_loc, 3, GL_FLOAT, GL_FALSE, 0, ((void*)0));
+	glEnableVertexAttribArray(this->normal_loc);
 	
 	glGenBuffers(1, &this->indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->indexBuffer);
@@ -90,6 +92,9 @@ void VertexArrayObject::LoadVerticies(std::vector<GLfloat> vertexData, std::vect
 void VertexArrayObject::GenerateNormals()
 {
 	
+	std::vector<GLfloat> newNormals;
+	
+
 	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
 	{
 		(*it).normal = gmtl::Vec3f(0.0f, 0.0f, 0.0f);
@@ -119,11 +124,25 @@ void VertexArrayObject::GenerateNormals()
 		vec1 = v2.normal + newNormal;
 		v2.normal = vec1;
 
+		this->verticies[*it] = v0;
+		this->verticies[*(it + 1)] = v1;
+		this->verticies[*(it + 2)] = v2;
+
 	}
 
 	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
 	{
 		(*it).normal = gmtl::makeNormal((*it).normal);
+
+		newNormals.push_back((*it).normal[0]);
+		newNormals.push_back((*it).normal[1]);
+		newNormals.push_back((*it).normal[2]);
 	}
 	
+	glGenBuffers(1, &this->normalBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, this->normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(&newNormals[0])*newNormals.size(), &newNormals[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(this->normal_loc, 3, GL_FLOAT, GL_FALSE, 0, ((void*)0));
+	glEnableVertexAttribArray(this->normal_loc);
+
 }

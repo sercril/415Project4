@@ -273,6 +273,8 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 					graph[i]->object.matrix *= gmtl::makeTrans<gmtl::Matrix44f>(ballDelta);
 					graph[i]->specCoefficient = ballSpec;
 					graph[i]->shine = ballShine;
+
+					
 					break; 
 				case FLOOR:
 					graph[i]->specCoefficient = floorSpec;
@@ -286,10 +288,7 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			newMV = newMV * graph[i]->object.scale;
 
 
-			if (genNorms)
-			{
-				graph[i]->object.VAO.GenerateNormals();
-			}
+			
 
 			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, graph[i]->object.texture.textureHeight, graph[i]->object.texture.textureWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, graph[i]->object.texture.imageData);
@@ -307,6 +306,11 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
 			
+			if (genNorms && graph[i]->type == BALL)
+			{
+				graph[i]->object.VAO.GenerateNormals();
+			}
+
 			lightPoint = mv * lightPosition;
 			glUniform3f(lightPosition_loc, lightPoint[0], lightPoint[1], lightPoint[2]);
 			glUniform4f(upVector_loc, mv[1][0], mv[1][1], mv[1][2], 0);
@@ -502,6 +506,7 @@ void display()
 void idle()
 {
 	ballDelta = gmtl::Vec3f(0,0,0);
+	genNorms = false;
 }
 
 void init()
