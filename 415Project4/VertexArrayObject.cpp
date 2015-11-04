@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include <map>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -14,6 +14,14 @@
 
 using namespace std;
 
+
+struct VectorLessThan : binary_function<gmtl::Vec3f,gmtl::Vec3f,bool>
+{
+	bool operator()(const gmtl::Vec3f& first, const gmtl::Vec3f& second)
+	{
+		return tie(first[0], first[1], first[2]) < tie(second[0], second[1], second[2]);
+	}
+};
 
 VertexArrayObject::VertexArrayObject() {}
 VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc, GLuint vertcolor_loc)
@@ -93,11 +101,14 @@ void VertexArrayObject::GenerateNormals()
 {
 	
 	std::vector<GLfloat> newNormals;
+	std::map<gmtl::Vec3f, gmtl::Vec3f, VectorLessThan> pos2norm;
 	
+
+	cout << "shit happens" << endl;
 
 	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
 	{
-		(*it).normal = gmtl::Vec3f(0.0f, 0.0f, 0.0f);
+		pos2norm[(*it).position] = gmtl::Vec3f(0.0f, 0.0f, 0.0f);
 	}
 	
 	for (std::vector<GLushort>::iterator it = this->index_data.begin(); it < this->index_data.end(); it += 3)
@@ -113,26 +124,19 @@ void VertexArrayObject::GenerateNormals()
 		vec1 = v1.position - v0.position;
 		vec2 = v2.position - v0.position;
 	
-		newNormal = gmtl::makeNormal(gmtl::makeCross(vec1,vec2));
+		newNormal = gmtl::makeCross(vec1,vec2);
 
-		vec1 = v0.normal + newNormal;
-		v0.normal = vec1;
-
-		vec1 = v1.normal + newNormal;
-		v1.normal = vec1;
-
-		vec1 = v2.normal + newNormal;
-		v2.normal = vec1;
-
-		this->verticies[*it] = v0;
-		this->verticies[*(it + 1)] = v1;
-		this->verticies[*(it + 2)] = v2;
+		pos2norm[v0.position] += newNormal;
+		pos2norm[v1.position] += newNormal;
+		pos2norm[v2.position] += newNormal;
 
 	}
 
 	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
 	{
-		(*it).normal = gmtl::makeNormal((*it).normal);
+		(*it).normal = gmtl::makeNormal(pos2norm[(*it).position]);		
+
+		cout << (*it).normal << endl;
 
 		newNormals.push_back((*it).normal[0]);
 		newNormals.push_back((*it).normal[1]);

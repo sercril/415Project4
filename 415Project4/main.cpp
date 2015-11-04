@@ -273,8 +273,6 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 					graph[i]->object.matrix *= gmtl::makeTrans<gmtl::Matrix44f>(ballDelta);
 					graph[i]->specCoefficient = ballSpec;
 					graph[i]->shine = ballShine;
-
-					
 					break; 
 				case FLOOR:
 					graph[i]->specCoefficient = floorSpec;
@@ -306,7 +304,7 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
 			
-			if (genNorms && graph[i]->type == BALL)
+			if (genNorms && graph[i]->type == FLOOR)
 			{
 				graph[i]->object.VAO.GenerateNormals();
 			}
