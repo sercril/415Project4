@@ -4,6 +4,7 @@
 in vec2 UV;
 in vec3 fragmentNormal;
 in vec4 fragmentPosition;
+in vec3 fragmentColor;
 
 // Ouput data
 out vec3 color;
@@ -23,10 +24,21 @@ uniform int ambientFlag;
 uniform int diffuseFlag;
 uniform int specFlag;
 
+uniform int texFlag;
+
 void main(){
 
-	vec3 normNormal, V, R, lightDirection, normLight;
+	vec3 normNormal, V, R, lightDirection, normLight, colors;
 	float lightDotNormal;
+
+	if(texFlag == 1)
+	{
+		colors = texture2D( texture_Colors, UV ).rgb;
+	}
+	else
+	{
+		colors = fragmentColor;
+	}
 
 	//normLight = normalize(lightPosition);
 
@@ -44,12 +56,12 @@ void main(){
 	
 	if(ambientFlag == 1)
 	{
-		color = color + ambientLight * texture2D( texture_Colors, UV ).rgb * (0.5f + 0.5f * dot(normNormal, normalize(upVector.xyz)));
+		color = color + ambientLight * colors * (0.5f + 0.5f * dot(normNormal, normalize(upVector.xyz)));
 	}
 
 	if(diffuseFlag == 1)
 	{
-		color = color + diffuseLight * texture2D( texture_Colors, UV ).rgb * (max(0.0f, dot(normNormal,lightDirection)));
+		color = color + diffuseLight * colors * (max(0.0f, dot(normNormal,lightDirection)));
 	}
 
 	if(specFlag == 1)

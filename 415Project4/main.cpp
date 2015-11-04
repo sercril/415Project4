@@ -71,7 +71,7 @@ struct Keyframe
 
 int mouseX, mouseY,
 mouseDeltaX, mouseDeltaY,
-ambientFlag, diffuseFlag, specFlag;
+ambientFlag, diffuseFlag, specFlag, texFlag;
 
 unsigned int textureWidth, textureHeight;
 unsigned char *imageData;
@@ -87,7 +87,7 @@ struct Keyframe c;
 GLuint Matrix_loc, vertposition_loc, vertcolor_loc, normal_loc, modelview_loc,
 		lightPosition_loc, specCoefficient_loc, upVector_loc, 
 		ambientLight_loc, diffuseLight_loc, specularLight_loc, shine_loc,
-		ambientFlag_loc, diffuseFlag_loc, specularFlag_loc,
+		ambientFlag_loc, diffuseFlag_loc, specularFlag_loc, texFlag_loc,
 		vertex_UV, texture_location, NormalMatrix;
 
 GLenum errCode;
@@ -220,7 +220,7 @@ void buildGraph()
 	importBallData();
 	ball->type = BALL;
 	ball->parent = NULL;
-	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV, normal_loc);
+	ball->object = SceneObject(ballRadius, ball_vertex_data, ball_normal_data, ball_uv_data, ball_index_data, vertposition_loc, vertex_UV, normal_loc, vertcolor_loc);
 	ball->children.clear();
 
 	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, 0.0f, -5.0f));
@@ -238,7 +238,7 @@ void buildGraph()
 	//Floor
 	floor->type = FLOOR;
 	floor->parent = NULL;
-	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius * 10, vertposition_loc, vertex_UV, normal_loc);
+	floor->object = SceneObject(ballRadius * 10, 1.0f, ballRadius * 10, vertposition_loc, vertex_UV, normal_loc, vertcolor_loc);
 	floor->children.clear();
 	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, floorY*-1.0f, 0.0f));
 	initialTranslation.setState(gmtl::Matrix44f::TRANS);
@@ -321,6 +321,8 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniform1i(diffuseFlag_loc, diffuseFlag);
 			glUniform1i(specularFlag_loc, specFlag);
 
+			glUniform1i(texFlag_loc, texFlag);
+
 			glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, &newMV[0][0]);
 
 			// Draw the transformed cuboid
@@ -395,7 +397,10 @@ void keyboard(unsigned char key, int x, int y)
 		case 'p':
 			specFlag = (specFlag == 1) ? 0 : 1;
 			break;
-		
+
+		case 't':
+			texFlag = (texFlag == 1) ? 0 : 1;
+			break;	
 
 		case 'w':
 			ballDelta = gmtl::Vec3f(0, 1.0f, 0);
@@ -546,13 +551,15 @@ void init()
 	diffuseFlag_loc = glGetUniformLocation(program, "diffuseFlag");
 	specularFlag_loc = glGetUniformLocation(program, "specFlag");
 
+	texFlag_loc = glGetUniformLocation(program, "texFlag");
+
 	modelview_loc = glGetUniformLocation(program, "modelview");
 
 	glActiveTexture(GL_TEXTURE0);
 
 	glBindTexture(GL_TEXTURE_2D, texture_location);
 
-
+	
 
 	gmtl::identity(view);
 	gmtl::identity(modelView);
@@ -591,9 +598,7 @@ void init()
 
 	buildGraph();
 
-	ambientFlag = 1;
-	diffuseFlag = 1;
-	specFlag = 1;
+	ambientFlag = diffuseFlag = specFlag = texFlag = 1;
 	
 }
 

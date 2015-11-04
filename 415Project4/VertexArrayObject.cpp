@@ -16,7 +16,7 @@ using namespace std;
 
 
 VertexArrayObject::VertexArrayObject() {}
-VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc)
+VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vector<GLfloat> colorData, std::vector<GLfloat> normalData, std::vector<GLfloat> uvData, std::vector<GLushort> indexData, GLuint vertposition_loc, GLuint vertex_UV, GLuint normal_loc, GLuint vertcolor_loc)
 {
 
 	this->vertex_data = vertexData;
@@ -47,6 +47,12 @@ VertexArrayObject::VertexArrayObject(std::vector<GLfloat> vertexData, std::vecto
 	glBufferData(GL_ARRAY_BUFFER, sizeof(&uvData[0])*uvData.size(), &uvData[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(vertex_UV, 2, GL_FLOAT, GL_FALSE, 0, ((void*)0));
 	glEnableVertexAttribArray(vertex_UV);
+
+	glGenBuffers(1, &this->colorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, this->colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(&colorData[0])*colorData.size(), &colorData[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(vertcolor_loc, 2, GL_FLOAT, GL_FALSE, 0, ((void*)0));
+	glEnableVertexAttribArray(vertcolor_loc);
 
 	glGenBuffers(1, &this->normalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->normalBuffer);
