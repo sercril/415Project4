@@ -68,5 +68,4 @@ void main(){
 	{
 		color = color + specCoefficient * specularLight * pow(max(0.0f,dot(V,R)), shine);
 	}
-
 }

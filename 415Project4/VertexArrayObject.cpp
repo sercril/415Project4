@@ -97,7 +97,7 @@ void VertexArrayObject::LoadVerticies(std::vector<GLfloat> vertexData, std::vect
 	}
 }
 
-void VertexArrayObject::GenerateNormals()
+void VertexArrayObject::GenerateSmoothNormals()
 {
 	
 	std::vector<GLfloat> newNormals;
@@ -140,6 +140,59 @@ void VertexArrayObject::GenerateNormals()
 		newNormals.push_back((*it).normal[2]);
 	}
 	
+	glGenBuffers(1, &this->normalBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, this->normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(&newNormals[0])*newNormals.size(), &newNormals[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(this->normal_loc, 3, GL_FLOAT, GL_FALSE, 0, ((void*)0));
+	glEnableVertexAttribArray(this->normal_loc);
+
+}
+
+void VertexArrayObject::GenerateSplitNormals()
+{
+
+	std::vector<GLfloat> newNormals;
+
+
+	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
+	{
+		(*it).normal = gmtl::Vec3f(0.0f, 0.0f, 0.0f);
+	}
+
+	for (std::vector<GLushort>::iterator it = this->index_data.begin(); it < this->index_data.end(); it += 3)
+	{
+		Vertex v0, v1, v2;
+		gmtl::Vec3f newNormal, vec1, vec2;
+
+
+		v0 = this->verticies[*it];
+		v1 = this->verticies[*(it + 1)];
+		v2 = this->verticies[*(it + 2)];
+
+		vec1 = v1.position - v0.position;
+		vec2 = v2.position - v0.position;
+
+		newNormal = gmtl::makeCross(vec1, vec2);
+
+		v0.normal = newNormal;
+		v1.normal = newNormal;
+		v2.normal = newNormal;
+
+		this->verticies[*it] = v0;
+		this->verticies[*(it + 1)] = v1;
+		this->verticies[*(it + 2)] = v2;
+
+	}
+
+	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
+	{
+		(*it).normal = gmtl::makeNormal((*it).normal);
+
+		newNormals.push_back((*it).normal[0]);
+		newNormals.push_back((*it).normal[1]);
+		newNormals.push_back((*it).normal[2]);
+	}
+
 	glGenBuffers(1, &this->normalBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, this->normalBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(&newNormals[0])*newNormals.size(), &newNormals[0], GL_DYNAMIC_DRAW);

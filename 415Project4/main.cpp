@@ -71,12 +71,12 @@ struct Keyframe
 
 int mouseX, mouseY,
 mouseDeltaX, mouseDeltaY,
-ambientFlag, diffuseFlag, specFlag, texFlag;
+ambientFlag, diffuseFlag, specFlag, texFlag, floorTexFlag, ballTexFlag;
 
 unsigned int textureWidth, textureHeight;
 unsigned char *imageData;
 
-bool genNorms;
+bool genSmoothNorms, genSplitNorms;
 
 float azimuth, elevation, ballRadius, floorY, cameraZFactor,
 		nearValue, farValue, leftValue, rightValue, topValue, bottomValue,
@@ -243,7 +243,9 @@ void buildGraph()
 	initialTranslation = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(0.0f, floorY*-1.0f, 0.0f));
 	initialTranslation.setState(gmtl::Matrix44f::TRANS);
 	//Make it look good
-	initialTranslation = initialTranslation;
+	moveLeft = gmtl::makeTrans<gmtl::Matrix44f>(gmtl::Vec3f(((ballRadius * 10)*-1.0f) / 2, 0.0f, ((ballRadius * 10)*-1.0f) / 2));
+	moveLeft.setState(gmtl::Matrix44f::TRANS);
+	initialTranslation = moveLeft * initialTranslation;
 	floor->object.matrix = floor->object.matrix * initialTranslation;
 	LoadTexture("dirt.ppm");
 	floor->object.SetTexture(Texture(textureWidth, textureHeight, imageData));
@@ -273,10 +275,12 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 					graph[i]->object.matrix *= gmtl::makeTrans<gmtl::Matrix44f>(ballDelta);
 					graph[i]->specCoefficient = ballSpec;
 					graph[i]->shine = ballShine;
+					texFlag = ballTexFlag;
 					break; 
 				case FLOOR:
 					graph[i]->specCoefficient = floorSpec;
 					graph[i]->shine = floorShine;
+					texFlag = floorTexFlag;
 					break;
 			}
 
@@ -285,10 +289,6 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 
 			newMV = newMV * graph[i]->object.scale;
 
-
-			
-
-			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, graph[i]->object.texture.textureHeight, graph[i]->object.texture.textureWidth, 0, GL_RGB, GL_UNSIGNED_BYTE, graph[i]->object.texture.imageData);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -304,9 +304,13 @@ void renderGraph(std::vector<SceneNode*> graph, gmtl::Matrix44f mv)
 			glUniformMatrix4fv(Matrix_loc, 1, GL_FALSE, &renderTransform[0][0]);
 			glUniformMatrix4fv(NormalMatrix, 1, GL_FALSE, &viewRotation[0][0]);
 			
-			if (genNorms && graph[i]->type == FLOOR)
+			if (genSmoothNorms)
 			{
-				graph[i]->object.VAO.GenerateNormals();
+				graph[i]->object.VAO.GenerateSmoothNormals();
+			}
+			else if (genSplitNorms)
+			{
+				graph[i]->object.VAO.GenerateSplitNormals();
 			}
 
 			lightPoint = mv * lightPosition;
@@ -385,7 +389,11 @@ void keyboard(unsigned char key, int x, int y)
 	{
 
 		case 'n':
-			genNorms = true;
+			genSmoothNorms = true;
+			break;
+
+		case 'N':
+			genSplitNorms = true;
 			break;
 
 		case 'i':
@@ -401,8 +409,12 @@ void keyboard(unsigned char key, int x, int y)
 			break;
 
 		case 't':
-			texFlag = (texFlag == 1) ? 0 : 1;
+			ballTexFlag = (ballTexFlag == 1) ? 0 : 1;
 			break;	
+
+		case 'T':
+			floorTexFlag = (floorTexFlag == 1) ? 0 : 1;
+			break;
 
 		case 'w':
 			ballDelta = gmtl::Vec3f(0, 1.0f, 0);
@@ -489,7 +501,6 @@ void display()
 
 	
 	renderGraph(sceneGraph, view);
-	genNorms = false;
 	//Ask GL to execute the commands from the buffer
 	glutSwapBuffers();	// *** if you are using GLUT_DOUBLE, use glutSwapBuffers() instead 
 
@@ -504,7 +515,8 @@ void display()
 void idle()
 {
 	ballDelta = gmtl::Vec3f(0,0,0);
-	genNorms = false;
+	genSmoothNorms = false;
+	genSplitNorms = false;
 }
 
 void init()
@@ -512,7 +524,7 @@ void init()
 
 	elevation = azimuth = 0;
 	ballRadius = floorY = 4.0f;
-	genNorms = false;
+	genSmoothNorms = genSplitNorms = false;
 
 	ballShine = floorShine = 0.1f;
 	ballSpec = floorSpec = 0.2f;
@@ -601,7 +613,7 @@ void init()
 
 	buildGraph();
 
-	ambientFlag = diffuseFlag = specFlag = texFlag = 1;
+	ambientFlag = diffuseFlag = specFlag = texFlag = ballTexFlag = floorTexFlag = 1;
 	
 }
 
