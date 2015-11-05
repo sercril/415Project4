@@ -103,9 +103,6 @@ void VertexArrayObject::GenerateNormals()
 	std::vector<GLfloat> newNormals;
 	std::map<gmtl::Vec3f, gmtl::Vec3f, VectorLessThan> pos2norm;
 	
-
-	cout << "shit happens" << endl;
-
 	for (std::vector<Vertex>::iterator it = this->verticies.begin(); it < verticies.end(); ++it)
 	{
 		pos2norm[(*it).position] = gmtl::Vec3f(0.0f, 0.0f, 0.0f);
